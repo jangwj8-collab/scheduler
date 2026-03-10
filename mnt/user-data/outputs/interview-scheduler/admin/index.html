@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>관리자 — 면담 예약 시스템</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600;700&family=DM+Mono:wght@400;500&family=Pretendard:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ink: #1a1a2e;
+      --paper: #f5f0e8;
+      --accent: #c84b31;
+      --accent2: #2d6a4f;
+      --muted: #8a8070;
+      --line: #d4cfc5;
+      --card: #ffffff;
+      --admin-bg: #0f1a14;
+      --admin-accent: #4ade80;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Pretendard', sans-serif;
+      background: var(--admin-bg);
+      color: #e2e8e0;
+      min-height: 100vh;
+    }
+
+    header {
+      background: rgba(15,26,20,0.95);
+      border-bottom: 1px solid rgba(74,222,128,0.2);
+      padding: 0 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 64px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(8px);
+    }
+    .logo {
+      font-family: 'Noto Serif KR', serif;
+      font-size: 1rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      color: #e2e8e0;
+    }
+    .logo-badge {
+      background: var(--admin-accent);
+      color: #0f1a14;
+      font-size: 0.65rem;
+      font-weight: 800;
+      padding: 2px 6px;
+      border-radius: 4px;
+      letter-spacing: 0.06em;
+    }
+    .header-nav a {
+      color: rgba(226,232,224,0.5);
+      text-decoration: none;
+      font-size: 0.82rem;
+      transition: color 0.2s;
+    }
+    .header-nav a:hover { color: #e2e8e0; }
+
+    main {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 2.5rem 1.5rem 4rem;
+      display: grid;
+      grid-template-columns: 340px 1fr;
+      gap: 2rem;
+      align-items: start;
+    }
+
+    @media (max-width: 800px) {
+      main { grid-template-columns: 1fr; }
+    }
+
+    /* ── Cards ── */
+    .card {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 14px;
+      overflow: hidden;
+    }
+    .card-header {
+      padding: 1.1rem 1.25rem;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      font-weight: 600;
+      font-size: 0.88rem;
+      color: var(--admin-accent);
+      letter-spacing: 0.04em;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    /* ── Add Slot Form ── */
+    .slot-form { padding: 1.25rem; }
+    .form-group { margin-bottom: 1rem; }
+    .form-label {
+      display: block;
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      color: rgba(226,232,224,0.5);
+      margin-bottom: 0.4rem;
+      text-transform: uppercase;
+    }
+    .form-input, .form-select {
+      width: 100%;
+      padding: 0.6rem 0.85rem;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 8px;
+      color: #e2e8e0;
+      font-family: 'Pretendard', sans-serif;
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .form-input:focus, .form-select:focus {
+      border-color: var(--admin-accent);
+    }
+    .form-input::placeholder { color: rgba(226,232,224,0.3); }
+    .form-select option { background: #1a2d22; }
+
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+
+    .btn-add {
+      width: 100%;
+      padding: 0.75rem;
+      background: var(--admin-accent);
+      color: #0f1a14;
+      border: none;
+      border-radius: 8px;
+      font-family: 'Pretendard', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity 0.2s;
+      margin-top: 0.25rem;
+    }
+    .btn-add:hover { opacity: 0.85; }
+
+    /* ── Bulk Generate ── */
+    .bulk-section {
+      border-top: 1px solid rgba(255,255,255,0.08);
+      padding: 1.25rem;
+    }
+    .bulk-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: rgba(226,232,224,0.5);
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-bottom: 0.75rem;
+    }
+    .checkbox-grid {
+      display: flex;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+      margin-bottom: 0.75rem;
+    }
+    .day-checkbox { display: none; }
+    .day-label {
+      padding: 0.3rem 0.6rem;
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 6px;
+      font-size: 0.75rem;
+      cursor: pointer;
+      transition: all 0.15s;
+      color: rgba(226,232,224,0.6);
+    }
+    .day-checkbox:checked + .day-label {
+      background: var(--admin-accent);
+      color: #0f1a14;
+      border-color: var(--admin-accent);
+      font-weight: 700;
+    }
+
+    .btn-generate {
+      width: 100%;
+      padding: 0.65rem;
+      background: transparent;
+      color: var(--admin-accent);
+      border: 1.5px solid var(--admin-accent);
+      border-radius: 8px;
+      font-family: 'Pretendard', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-generate:hover { background: var(--admin-accent); color: #0f1a14; }
+
+    /* ── Slot List ── */
+    .slot-list { max-height: 600px; overflow-y: auto; }
+
+    .slot-group-header {
+      padding: 0.5rem 1rem;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.72rem;
+      color: rgba(226,232,224,0.35);
+      background: rgba(255,255,255,0.02);
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      position: sticky;
+      top: 0;
+    }
+
+    .slot-item {
+      display: flex;
+      align-items: center;
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      gap: 0.75rem;
+      transition: background 0.12s;
+    }
+    .slot-item:hover { background: rgba(255,255,255,0.03); }
+    .slot-item:last-child { border-bottom: none; }
+
+    .slot-status {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .slot-status.open { background: var(--admin-accent); }
+    .slot-status.full { background: #f87171; }
+
+    .slot-time {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.82rem;
+      color: #e2e8e0;
+      flex: 1;
+    }
+    .slot-booker {
+      font-size: 0.78rem;
+      color: rgba(226,232,224,0.5);
+    }
+    .slot-booker.booked { color: #fbbf24; }
+
+    .btn-del {
+      background: none;
+      border: 1px solid rgba(248,113,113,0.3);
+      color: #f87171;
+      border-radius: 5px;
+      padding: 0.2rem 0.5rem;
+      font-size: 0.72rem;
+      cursor: pointer;
+      transition: all 0.15s;
+      flex-shrink: 0;
+    }
+    .btn-del:hover { background: #f87171; color: white; }
+    .btn-del:disabled { opacity: 0.3; cursor: not-allowed; }
+
+    /* ── Reservation List ── */
+    .res-list { max-height: 400px; overflow-y: auto; }
+    .res-item-admin {
+      padding: 0.9rem 1.1rem;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 0.4rem;
+    }
+    .res-item-admin:last-child { border-bottom: none; }
+    .res-datetime {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.72rem;
+      color: var(--admin-accent);
+      margin-bottom: 0.25rem;
+    }
+    .res-person { font-size: 0.88rem; font-weight: 600; }
+    .res-detail { font-size: 0.76rem; color: rgba(226,232,224,0.5); margin-top: 1px; }
+
+    .btn-admin-cancel {
+      background: none;
+      border: 1px solid rgba(248,113,113,0.3);
+      color: #f87171;
+      border-radius: 5px;
+      padding: 0.3rem 0.6rem;
+      font-size: 0.72rem;
+      cursor: pointer;
+      align-self: center;
+      transition: all 0.15s;
+    }
+    .btn-admin-cancel:hover { background: #f87171; color: white; }
+
+    .empty-state {
+      padding: 1.5rem;
+      text-align: center;
+      color: rgba(226,232,224,0.3);
+      font-size: 0.85rem;
+    }
+
+    /* ── Stats Bar ── */
+    .stats-bar {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 2rem;
+      grid-column: 1 / -1;
+    }
+    .stat {
+      background: rgba(255,255,255,0.04);
+      padding: 1.25rem;
+      text-align: center;
+    }
+    .stat-num {
+      font-family: 'DM Mono', monospace;
+      font-size: 2rem;
+      font-weight: 500;
+      color: var(--admin-accent);
+      line-height: 1;
+    }
+    .stat-label {
+      font-size: 0.75rem;
+      color: rgba(226,232,224,0.45);
+      margin-top: 0.3rem;
+      letter-spacing: 0.04em;
+    }
+
+    /* ── Toast ── */
+    .toast {
+      position: fixed;
+      bottom: 2rem; left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: #1a2d22;
+      color: var(--admin-accent);
+      padding: 0.75rem 1.5rem;
+      border-radius: 99px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      z-index: 999;
+      transition: transform 0.3s;
+      border: 1px solid rgba(74,222,128,0.25);
+      white-space: nowrap;
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+    .toast.error { color: #f87171; border-color: rgba(248,113,113,0.25); }
+
+    /* ── Auth overlay ── */
+    .auth-overlay {
+      position: fixed; inset: 0;
+      background: var(--admin-bg);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 500;
+    }
+    .auth-box {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 16px;
+      padding: 2.5rem;
+      width: 320px;
+      text-align: center;
+    }
+    .auth-title {
+      font-family: 'Noto Serif KR', serif;
+      font-size: 1.2rem;
+      margin-bottom: 0.4rem;
+    }
+    .auth-sub { font-size: 0.8rem; color: rgba(226,232,224,0.4); margin-bottom: 1.5rem; }
+    .auth-input {
+      width: 100%;
+      padding: 0.7rem 1rem;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 8px;
+      color: #e2e8e0;
+      font-size: 0.9rem;
+      outline: none;
+      text-align: center;
+      letter-spacing: 0.2em;
+      margin-bottom: 1rem;
+    }
+    .auth-btn {
+      width: 100%;
+      padding: 0.7rem;
+      background: var(--admin-accent);
+      color: #0f1a14;
+      border: none;
+      border-radius: 8px;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+    .auth-hint { font-size: 0.72rem; color: rgba(226,232,224,0.25); margin-top: 1rem; }
+  </style>
+</head>
+<body>
+
+<!-- Auth Overlay -->
+<div class="auth-overlay" id="authOverlay">
+  <div class="auth-box">
+    <div class="auth-title">관리자 로그인</div>
+    <div class="auth-sub">비밀번호를 입력하세요</div>
+    <input class="auth-input" type="password" id="authInput" placeholder="••••••" />
+    <button class="auth-btn" id="authBtn">확인</button>
+    <div class="auth-hint">기본 비밀번호: admin1234<br>(admin.js에서 변경 가능)</div>
+  </div>
+</div>
+
+<header>
+  <div class="logo">
+    면담 예약 시스템
+    <span class="logo-badge">ADMIN</span>
+  </div>
+  <nav class="header-nav">
+    <a href="../index.html">← 학생 화면</a>
+  </nav>
+</header>
+
+<main id="adminMain" style="display:none;">
+  <!-- Stats Bar -->
+  <div class="stats-bar">
+    <div class="stat">
+      <div class="stat-num" id="statTotal">0</div>
+      <div class="stat-label">전체 슬롯</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num" id="statBooked">0</div>
+      <div class="stat-label">예약 완료</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num" id="statOpen">0</div>
+      <div class="stat-label">예약 가능</div>
+    </div>
+  </div>
+
+  <!-- Left: Add Slots -->
+  <div>
+    <div class="card" style="margin-bottom:1.5rem;">
+      <div class="card-header">＋ 슬롯 추가</div>
+      <div class="slot-form">
+        <div class="form-group">
+          <label class="form-label">날짜</label>
+          <input class="form-input" type="date" id="slotDate" />
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">시작 시간</label>
+            <input class="form-input" type="time" id="slotStart" step="1800" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">종료 시간</label>
+            <input class="form-input" type="time" id="slotEnd" step="1800" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">메모 (선택)</label>
+          <input class="form-input" type="text" id="slotNote" placeholder="예) 온라인 면담" />
+        </div>
+        <button class="btn-add" id="addSlotsBtn">슬롯 추가</button>
+      </div>
+
+      <!-- Bulk Generate -->
+      <div class="bulk-section">
+        <div class="bulk-label">▸ 주간 일괄 생성</div>
+        <div class="form-group">
+          <label class="form-label">주 시작일 (월요일)</label>
+          <input class="form-input" type="date" id="bulkWeekStart" />
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">시작 시간</label>
+            <input class="form-input" type="time" id="bulkStart" value="09:00" step="1800" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">종료 시간</label>
+            <input class="form-input" type="time" id="bulkEnd" value="17:00" step="1800" />
+          </div>
+        </div>
+        <div class="bulk-label" style="margin-bottom:0.5rem;">요일 선택</div>
+        <div class="checkbox-grid">
+          <input type="checkbox" id="d0" class="day-checkbox" value="0">
+          <label for="d0" class="day-label">월</label>
+          <input type="checkbox" id="d1" class="day-checkbox" value="1">
+          <label for="d1" class="day-label">화</label>
+          <input type="checkbox" id="d2" class="day-checkbox" value="2">
+          <label for="d2" class="day-label">수</label>
+          <input type="checkbox" id="d3" class="day-checkbox" value="3">
+          <label for="d3" class="day-label">목</label>
+          <input type="checkbox" id="d4" class="day-checkbox" value="4">
+          <label for="d4" class="day-label">금</label>
+        </div>
+        <button class="btn-generate" id="bulkGenBtn">일괄 생성</button>
+      </div>
+    </div>
+
+    <!-- Reservation List -->
+    <div class="card">
+      <div class="card-header">예약 현황</div>
+      <div class="res-list" id="adminResList">
+        <div class="empty-state">예약 없음</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right: Slot List -->
+  <div class="card">
+    <div class="card-header">슬롯 관리</div>
+    <div class="slot-list" id="adminSlotList">
+      <div class="empty-state">등록된 슬롯이 없습니다.</div>
+    </div>
+  </div>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script src="../js/data.js"></script>
+<script src="admin.js"></script>
+</body>
+</html>

@@ -2,7 +2,7 @@
  * admin.js — 관리자 패널 로직
  */
 
-const ADMIN_PASSWORD = 'admin1234'; // 변경하세요
+const ADMIN_PASSWORD = 'aidata1234'; 
 
 // ── 인증 ──
 (function auth() {
